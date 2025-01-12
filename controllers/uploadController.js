@@ -32,6 +32,17 @@ const uploadHandler = async (req, res) => {
     const { userId, eventId, signature } = req.body;
 
     try {
+        const pool = await connectToDatabase();
+
+        const [existing] = await pool.query(
+            `SELECT * FROM eventos.assistance WHERE userId = ? AND eventId = ?`,
+            [userId, eventId]
+        );
+
+        if (existing.length > 0) {
+            return res.status(400).json({ message: 'El usuario ya está registrado en este evento.' });
+        }
+        
         let fileUrl = '';
 
         if (signature) {
@@ -42,17 +53,6 @@ const uploadHandler = async (req, res) => {
 
         if (req.file) {
             fileUrl = await uploadFileToS3(req.file.buffer, req.file.originalname, 'photos');
-        }
-
-        const pool = await connectToDatabase();
-
-        const [existing] = await pool.query(
-            `SELECT * FROM eventos.assistance WHERE userId = ? AND eventId = ?`,
-            [userId, eventId]
-        );
-
-        if (existing.length > 0) {
-            return res.status(400).json({ message: 'El usuario ya está registrado en este evento.' });
         }
 
         const [result] = await pool.query(

@@ -15,7 +15,7 @@ const validateUser = async (req, res) => {
             return res.json({ registered: false });
         }
 
-        return res.json({ registered: true });
+        return res.json({ registered: true, user: rows[0] });
     } catch (error) {
         console.error('Error al validar el usuario:', error);
         res.status(500).json({ message: 'Error al validar el usuario', error: error.message });
