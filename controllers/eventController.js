@@ -1,4 +1,5 @@
 const { connectToDatabase } = require('../config/db');
+const QRCode = require('qrcode');
 
 const getEvents = async (req, res) => {
     try {
@@ -67,4 +68,32 @@ const createEvent = async (req, res) => {
     }
 };
 
-module.exports = { getEvents, validateEvent, createEvent };
+const generateEventQRCode = async (req, res) => {
+    const { eventId } = req.body;
+
+    if (!eventId) {
+        return res.status(400).json({ message: 'El ID del evento es obligatorio.' });
+    }
+
+    try {
+        const pool = await connectToDatabase();
+        const [events] = await pool.query('SELECT * FROM eventos.events WHERE id = ?', [eventId]);
+
+        if (events.length === 0) {
+            return res.status(404).json({ message: 'Evento no encontrado' });
+        }
+
+        const qrData = `${eventId}`;
+        const qrCodeBase64 = await QRCode.toDataURL(qrData);
+
+        res.json({
+            message: 'Código QR generado con éxito',
+            qrCode: qrCodeBase64,
+        });
+    } catch (error) {
+        console.error('Error al generar el código QR:', error);
+        res.status(500).json({ message: 'Error al generar el código QR', error: error.message });
+    }
+};
+
+module.exports = { getEvents, validateEvent, createEvent, generateEventQRCode };

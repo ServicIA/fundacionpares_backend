@@ -1,6 +1,6 @@
 const express = require('express');
 const multer = require('multer');
-const { uploadHandler } = require('../controllers/uploadController');
+const { uploadHandler, processBatchUpload } = require('../controllers/uploadController');
 const { check, validationResult } = require('express-validator');
 
 const router = express.Router();
@@ -58,5 +58,23 @@ router.post(
     validateFile,
     uploadHandler
 );
+
+router.post(
+    '/batch/upload',
+    [
+      check('eventId', 'El ID del evento es obligatorio')
+        .notEmpty()
+        .isInt()
+        .withMessage('El ID del evento debe ser un número entero'),
+      (req, res, next) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+          return res.status(400).json({ errors: errors.array() });
+        }
+        next();
+      },
+    ],
+    processBatchUpload
+  );
 
 module.exports = router;

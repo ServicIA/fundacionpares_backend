@@ -1,5 +1,5 @@
 const express = require('express');
-const { getEvents, validateEvent, createEvent } = require('../controllers/eventController');
+const { getEvents, validateEvent, createEvent, generateEventQRCode } = require('../controllers/eventController');
 const { check, validationResult } = require('express-validator');
 
 const router = express.Router();
@@ -47,6 +47,21 @@ router.post(
         },
     ],
     createEvent
+);
+
+router.post(
+    '/generate-qr',
+    [
+        check('eventId', 'El ID del evento es obligatorio').notEmpty(),
+        (req, res, next) => {
+            const errors = validationResult(req);
+            if (!errors.isEmpty()) {
+                return res.status(400).json({ errors: errors.array() });
+            }
+            next();
+        },
+    ],
+    generateEventQRCode
 );
 
 module.exports = router;
