@@ -20,27 +20,36 @@ const validateUpload = [
     check('osigd', 'El campo OSIGD debe ser una cadena').optional().isString(),
     check('gender', 'El campo de género debe ser una cadena').optional().isString(),
     check('ethnicity', 'El campo de etnicidad debe ser una cadena').optional().isString(),
-    check('disability', 'El campo de discapacidad debe ser "true" o "false"')
+    check('disability', 'El campo de discapacidad debe ser "true", "false", 1 o 0')
         .optional()
+        .customSanitizer((value) => {
+            return value === '1' || value === 1 ? 'true' : value === '0' || value === 0 ? 'false' : value;
+        })
         .custom((value) => {
             if (value !== 'true' && value !== 'false') {
-                throw new Error('El campo de discapacidad debe ser "true" o "false".');
+                throw new Error('El campo de discapacidad debe ser "true", "false", 1 o 0.');
             }
             return true;
         }),
-    check('leader', 'El campo líder debe ser "true" o "false"')
+    check('leader', 'El campo líder debe ser "true", "false", 1 o 0')
         .optional()
+        .customSanitizer((value) => {
+            return value === '1' || value === 1 ? 'true' : value === '0' || value === 0 ? 'false' : value;
+        })
         .custom((value) => {
             if (value !== 'true' && value !== 'false') {
-                throw new Error('El campo líder debe ser "true" o "false".');
+                throw new Error('El campo líder debe ser "true", "false", 1 o 0.');
             }
             return true;
         }),
-    check('migrant', 'El campo migrante debe ser "true" o "false"')
+    check('migrant', 'El campo migrante debe ser "true", "false", 1 o 0')
         .optional()
+        .customSanitizer((value) => {
+            return value === '1' || value === 1 ? 'true' : value === '0' || value === 0 ? 'false' : value;
+        })
         .custom((value) => {
             if (value !== 'true' && value !== 'false') {
-                throw new Error('El campo migrante debe ser "true" o "false".');
+                throw new Error('El campo migrante debe ser "true", "false", 1 o 0.');
             }
             return true;
         }),
@@ -91,19 +100,19 @@ router.post(
 router.post(
     '/batch/upload',
     [
-      check('eventId', 'El ID del evento es obligatorio')
-        .notEmpty()
-        .isInt()
-        .withMessage('El ID del evento debe ser un número entero'),
-      (req, res, next) => {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-          return res.status(400).json({ errors: errors.array() });
-        }
-        next();
-      },
+        check('eventId', 'El ID del evento es obligatorio')
+            .notEmpty()
+            .isInt()
+            .withMessage('El ID del evento debe ser un número entero'),
+        (req, res, next) => {
+            const errors = validationResult(req);
+            if (!errors.isEmpty()) {
+                return res.status(400).json({ errors: errors.array() });
+            }
+            next();
+        },
     ],
     processBatchUpload
-  );
+);
 
 module.exports = router;
