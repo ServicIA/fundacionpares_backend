@@ -11,10 +11,39 @@ const upload = multer({
 });
 
 const validateUpload = [
-    check('userId', 'El ID del usuario es obligatorio')
+    check('fullName', 'El nombre completo es obligatorio').notEmpty(),
+    check('identification', 'La identificación es obligatoria').notEmpty(),
+    check('birthDate', 'La fecha de nacimiento es obligatoria y debe ser una fecha válida')
         .notEmpty()
-        .isInt()
-        .withMessage('El ID del usuario debe ser un número entero'),
+        .isISO8601()
+        .withMessage('La fecha de nacimiento debe estar en formato ISO 8601 (YYYY-MM-DD)'),
+    check('osigd', 'El campo OSIGD debe ser una cadena').optional().isString(),
+    check('gender', 'El campo de género debe ser una cadena').optional().isString(),
+    check('ethnicity', 'El campo de etnicidad debe ser una cadena').optional().isString(),
+    check('disability', 'El campo de discapacidad debe ser "true" o "false"')
+        .optional()
+        .custom((value) => {
+            if (value !== 'true' && value !== 'false') {
+                throw new Error('El campo de discapacidad debe ser "true" o "false".');
+            }
+            return true;
+        }),
+    check('leader', 'El campo líder debe ser "true" o "false"')
+        .optional()
+        .custom((value) => {
+            if (value !== 'true' && value !== 'false') {
+                throw new Error('El campo líder debe ser "true" o "false".');
+            }
+            return true;
+        }),
+    check('migrant', 'El campo migrante debe ser "true" o "false"')
+        .optional()
+        .custom((value) => {
+            if (value !== 'true' && value !== 'false') {
+                throw new Error('El campo migrante debe ser "true" o "false".');
+            }
+            return true;
+        }),
     check('eventId', 'El ID del evento es obligatorio')
         .notEmpty()
         .isInt()

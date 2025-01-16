@@ -31,52 +31,83 @@ const uploadFileToS3 = async (fileBuffer, fileName, folder) => {
 };
 
 const uploadHandler = async (req, res) => {
-    const { userId, eventId, signature } = req.body;
-  
-    try {
+  const { userId, eventId, signature, fullName, identification, birthDate, osigd, gender, ethnicity, disability, leader, migrant } = req.body;
+
+  try {
       const pool = await connectToDatabase();
-  
+
+      const parsedEventId = parseInt(eventId, 10);
+
+      if (isNaN(parsedEventId)) {
+          return res.status(400).json({ message: 'eventId debe ser un número válido.' });
+      }
+
+      let validatedUserId = userId;
+
+      if (!validatedUserId) {
+          const userValidationResponse = await callValidateUserMocked(identification);
+
+          if (!userValidationResponse.registered) {
+              const userCreationResponse = await callCreateUserMocked({
+                  fullName,
+                  identification,
+                  birthDate,
+                  osigd,
+                  gender,
+                  ethnicity,
+                  disability: disability === 'true',
+                  leader: leader === 'true',
+                  migrant: migrant === 'true',
+              });
+
+              if (userCreationResponse.error) {
+                  return res.status(400).json({ message: 'Error al crear el usuario.', error: userCreationResponse.error });
+              }
+
+              validatedUserId = userCreationResponse.user.id;
+          } else {
+              validatedUserId = userValidationResponse.user.id;
+          }
+      }
+
+      console.log('Validated userId:', validatedUserId, 'Parsed eventId:', parsedEventId);
       const [existing] = await pool.query(
-        `SELECT * FROM eventos.assistance WHERE userId = ? AND eventId = ?`,
-        [userId, eventId]
+          `SELECT * FROM eventos.assistance WHERE userId = ? AND eventId = ?`,
+          [validatedUserId, parsedEventId]
       );
-  
+
       if (existing.length > 0) {
-        return res.status(400).json({ message: 'El usuario ya está registrado en este evento.' });
+          return res.status(400).json({ message: 'El usuario ya está registrado en este evento.' });
       }
-      
+
       let fileUrl = '';
-  
+
       if (signature) {
-        const base64Data = signature.replace(/^data:image\/\w+;base64,/, '');
-        const buffer = Buffer.from(base64Data, 'base64');
-        fileUrl = await uploadFileToS3(buffer, `signature-${Date.now()}.png`, 'signatures');
+          const base64Data = signature.replace(/^data:image\/\w+;base64,/, '');
+          const buffer = Buffer.from(base64Data, 'base64');
+          fileUrl = await uploadFileToS3(buffer, `signature-${Date.now()}.png`, 'signatures');
       }
-  
+
       if (req.file) {
-        fileUrl = await uploadFileToS3(req.file.buffer, req.file.originalname, 'photos');
+          fileUrl = await uploadFileToS3(req.file.buffer, req.file.originalname, 'photos');
       }
-  
+
       const [result] = await pool.query(
-        `INSERT INTO eventos.assistance (userId, eventId, ${signature ? 'signaturePath' : 'photoPath'}) VALUES (?, ?, ?)`,
-        [userId, eventId, fileUrl]
+          `INSERT INTO eventos.assistance (userId, eventId, ${signature ? 'signaturePath' : 'photoPath'}) VALUES (?, ?, ?)`,
+          [validatedUserId, parsedEventId, fileUrl]
       );
-  
+
       return res.status(201).json({
-        message: 'Archivo subido y asistencia registrada con éxito',
-        assistanceId: result.insertId,
-        fileUrl,
+          message: 'Archivo subido y asistencia registrada con éxito',
+          assistanceId: result.insertId,
+          fileUrl,
       });
-    } catch (error) {
+  } catch (error) {
       console.error('Error al manejar la subida:', error);
-  
-      if (error.code === 'ER_DUP_ENTRY') {
-        return res.status(400).json({ message: 'El usuario ya está registrado en este evento.' });
-      }
-  
+
       return res.status(500).json({ message: 'Error al registrar la asistencia', error: error.message });
-    }
-  };
+  }
+};
 
 
 const processBatchUpload = async (req, res) => {

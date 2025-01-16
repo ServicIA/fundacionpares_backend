@@ -1,5 +1,5 @@
 const express = require('express');
-const { validateUser, createUser } = require('../controllers/userController');
+const { validateUser, createUser, getGenderDistribution, getTotalUsers, getUsersByOSIGD, getUsersByMigrante, getUsersByLeader } = require('../controllers/userController');
 const router = express.Router();
 const { check, validationResult } = require('express-validator');
 
@@ -45,5 +45,13 @@ router.post('/',
     },
     createUser
 )
+
+router.get("/gender-distribution", getGenderDistribution)
+
+router.get('/total', getTotalUsers);
+
+router.get('/osigd-distribution', getUsersByOSIGD);
+router.get('/migrant-distribution', getUsersByMigrante);
+router.get('/leader-distribution', getUsersByLeader);
 
 module.exports = router;

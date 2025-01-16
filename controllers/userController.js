@@ -70,4 +70,108 @@ const createUser = async (req, res) => {
     }
 };
 
-module.exports = { validateUser, createUser };
+
+const getTotalUsers = async (req, res) => {
+    try {
+        const pool = await connectToDatabase();
+        const [rows] = await pool.query('SELECT COUNT(*) AS totalUsers FROM eventos.users');
+
+        if (rows.length > 0) {
+            const totalUsers = rows[0].totalUsers;
+            return res.status(200).json({ totalUsers });
+        }
+
+        res.status(404).json({ message: 'No se encontraron usuarios en la base de datos.' });
+    } catch (error) {
+        console.error('Error al obtener el total de usuarios:', error);
+        res.status(500).json({ message: 'Error al obtener el total de usuarios.', error: error.message });
+    }
+};
+
+const getGenderDistribution = async (req, res) => {
+    try {
+        const pool = await connectToDatabase();
+
+        const [rows] = await pool.query(`
+            SELECT gender, COUNT(*) as count
+            FROM eventos.users
+            GROUP BY gender
+        `);
+
+        const distribution = rows.reduce((acc, row) => {
+            acc[row.gender] = row.count;
+            return acc;
+        }, {});
+
+        res.status(200).json(distribution);
+    } catch (error) {
+        console.error("Error al obtener la distribución de género:", error);
+        res.status(500).json({ message: "Error al obtener la distribución de género", error: error.message });
+    }
+};
+
+const getUsersByOSIGD = async (req, res) => {
+    try {
+        const pool = await connectToDatabase();
+        const [rows] = await pool.query(`
+            SELECT osigd, COUNT(*) as count
+            FROM eventos.users
+            GROUP BY osigd
+        `);
+
+        const distribution = rows.reduce((acc, row) => {
+            acc[row.osigd] = row.count;
+            return acc;
+        }, {});
+
+        res.status(200).json(distribution);
+    } catch (error) {
+        console.error("Error al obtener distribución por OSIGD:", error);
+        res.status(500).json({ message: "Error al obtener distribución por OSIGD", error: error.message });
+    }
+};
+
+const getUsersByMigrante = async (req, res) => {
+    try {
+        const pool = await connectToDatabase();
+        const [rows] = await pool.query(`
+            SELECT migrant, COUNT(*) as count
+            FROM eventos.users
+            GROUP BY migrant
+        `);
+
+        const distribution = rows.reduce((acc, row) => {
+            acc[row.migrant] = row.count;
+            return acc;
+        }, {});
+
+        res.status(200).json(distribution);
+    } catch (error) {
+        console.error("Error al obtener distribución por migrantes:", error);
+        res.status(500).json({ message: "Error al obtener distribución por migrantes", error: error.message });
+    }
+};
+
+const getUsersByLeader = async (req, res) => {
+    try {
+        const pool = await connectToDatabase();
+        const [rows] = await pool.query(`
+            SELECT leader, COUNT(*) as count
+            FROM eventos.users
+            GROUP BY leader
+        `);
+
+        const distribution = rows.reduce((acc, row) => {
+            acc[row.leader] = row.count;
+            return acc;
+        }, {});
+
+        res.status(200).json(distribution);
+    } catch (error) {
+        console.error("Error al obtener distribución por líderes sociales:", error);
+        res.status(500).json({ message: "Error al obtener distribución por líderes sociales", error: error.message });
+    }
+};
+
+
+module.exports = { validateUser, createUser, getTotalUsers, getGenderDistribution, getUsersByOSIGD, getUsersByMigrante, getUsersByLeader };

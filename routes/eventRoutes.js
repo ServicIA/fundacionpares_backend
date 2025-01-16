@@ -1,5 +1,5 @@
 const express = require('express');
-const { getEvents, validateEvent, createEvent, generateEventQRCode } = require('../controllers/eventController');
+const { getEvents, validateEvent, createEvent, generateEventQRCode, getEventsWithAttendees, deleteEvent, getFilteredEvents, getEventsByMonth } = require('../controllers/eventController');
 const { check, validationResult } = require('express-validator');
 
 const router = express.Router();
@@ -63,5 +63,13 @@ router.post(
     ],
     generateEventQRCode
 );
+
+router.get('/events-with-attendees', getEventsWithAttendees);
+
+router.delete('/:id', deleteEvent);
+
+router.get('/filtered-events', getFilteredEvents);
+
+router.get('/events-by-month', getEventsByMonth);
 
 module.exports = router;
