@@ -98,7 +98,7 @@ const loginAdmin = async (req, res) => {
       return res.status(401).json({ message: "Email o contraseña incorrectos" });
     }
 
-    const token = jwt.sign({ id: admin.id, email: admin.email }, process.env.JWT_SECRET, {
+    const token = jwt.sign({ id: admin.id, email: admin.email }, "esounejem", {
       expiresIn: "7d",
     });
 
