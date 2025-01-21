@@ -11,7 +11,6 @@ let pool;
 const connectToDatabase = async () => {
     if (!pool) {
         try {
-            const secret = await getSecret(SECRET_NAME);
 
             pool = mysql.createPool({
                 host: process.env.DB_HOST,
