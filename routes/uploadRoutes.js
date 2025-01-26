@@ -31,17 +31,10 @@ const validateUpload = [
             }
             return true;
         }),
-    check('leader', 'El campo líder debe ser "true", "false", 1 o 0')
+    check('leader', 'El campo líder debe ser una cadena no vacía.')
         .optional()
-        .customSanitizer((value) => {
-            return value === '1' || value === 1 ? 'true' : value === '0' || value === 0 ? 'false' : value;
-        })
-        .custom((value) => {
-            if (value !== 'true' && value !== 'false') {
-                throw new Error('El campo líder debe ser "true", "false", 1 o 0.');
-            }
-            return true;
-        }),
+        .isString()
+        .withMessage('El campo líder debe ser un string.'),
     check('migrant', 'El campo migrante debe ser "true", "false", 1 o 0')
         .optional()
         .customSanitizer((value) => {
