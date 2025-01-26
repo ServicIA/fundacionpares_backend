@@ -1,10 +1,7 @@
 const mysql = require('mysql2/promise');
-const { getSecret } = require('./secrets');
 const dotenv = require('dotenv');
 
 dotenv.config();
-
-const SECRET_NAME = process.env.DB_CREDENTIALS_SECRET_NAME;
 
 let pool;
 

@@ -1,6 +1,6 @@
 const express = require('express');
 const multer = require('multer');
-const { uploadHandler, processBatchUpload } = require('../controllers/uploadController');
+const { uploadHandler, processBatchUpload, uploadParentalAuthorization } = require('../controllers/uploadController');
 const { check, validationResult } = require('express-validator');
 
 const router = express.Router();
@@ -113,6 +113,29 @@ router.post(
         },
     ],
     processBatchUpload
+);
+
+router.post(
+    '/parental-authorization',
+    upload.single('file'),
+    [
+        check('userId', 'El ID del usuario es obligatorio')
+            .notEmpty()
+            .isInt()
+            .withMessage('El ID del usuario debe ser un número entero'),
+        check('eventId', 'El ID del evento es obligatorio')
+            .notEmpty()
+            .isInt()
+            .withMessage('El ID del evento debe ser un número entero'),
+        (req, res, next) => {
+            const errors = validationResult(req);
+            if (!errors.isEmpty()) {
+                return res.status(400).json({ errors: errors.array() });
+            }
+            next();
+        },
+    ],
+    uploadParentalAuthorization
 );
 
 module.exports = router;

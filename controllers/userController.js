@@ -23,11 +23,26 @@ const validateUser = async (req, res) => {
 };
 
 const createUser = async (req, res) => {
-    console.log(req.body)
-    const { fullName, identification, birthDate, osigd, gender, ethnicity, disability, leader, migrant } = req.body;
+    const {
+        fullName,
+        identification,
+        documentType,
+        birthDate,
+        phone,
+        email,
+        osigd,
+        gender,
+        ethnicity,
+        disability,
+        leader,
+        migrant,
+        organization,
+        municipality,
+        department
+    } = req.body;
 
-    if (!fullName || !identification || !birthDate) {
-        return res.status(400).json({ message: 'Faltan datos obligatorios (fullName, identification, birthDate).' });
+    if (!fullName || !identification || !documentType || !birthDate || !phone || !email || !organization || !municipality || !department) {
+        return res.status(400).json({ message: 'Faltan datos obligatorios (fullName, identification, documentType, birthDate, phone, email, organization, municipality, department).' });
     }
 
     try {
@@ -35,26 +50,39 @@ const createUser = async (req, res) => {
 
         const [existingUser] = await pool.query('SELECT * FROM eventos.users WHERE identification = ?', [identification]);
         if (existingUser.length > 0) {
-            return res.status(400).json({ message: 'La identificación ya está registrada' });
+            return res.status(400).json({ message: 'La identificación ya está registrada.' });
         }
 
         const [result] = await pool.query(
-            `INSERT INTO eventos.users (fullName, identification, birthDate, osigd, gender, ethnicity, disability, leader, migrant) 
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [fullName, identification, birthDate, osigd, gender, ethnicity, disability, leader, migrant]
+            `INSERT INTO eventos.users (
+                fullName, identification, documentType, birthDate, phone, email, 
+                osigd, gender, ethnicity, disability, leader, migrant, 
+                organization, municipality, department
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+                fullName, identification, documentType, birthDate, phone, email,
+                osigd, gender, ethnicity, disability, leader, migrant,
+                organization, municipality, department
+            ]
         );
 
         const newUser = {
             id: result.insertId,
             fullName,
             identification,
+            documentType,
             birthDate,
+            phone,
+            email,
             osigd,
             gender,
             ethnicity,
             disability,
             leader,
             migrant,
+            organization,
+            municipality,
+            department
         };
 
         res.status(201).json({
@@ -63,9 +91,6 @@ const createUser = async (req, res) => {
         });
     } catch (error) {
         console.error('Error al crear el usuario:', error);
-        if (error.code === 'ER_DUP_ENTRY') {
-            return res.status(400).json({ message: 'La identificación ya está registrada.' });
-        }
         res.status(500).json({ message: 'Error al crear el usuario', error: error.message });
     }
 };
